@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { seedBakestMenu } from './menu-seed.js';
+import settingsRouter from './settings-router.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -30,6 +31,7 @@ function auth(req,res,next){const h=req.headers.authorization||'';if(!h.startsWi
 function admin(req,res,next){if(req.auth?.role!=='admin')return fail(res,'Admin access required',403);next()}
 const id=v=>mongoose.isValidObjectId(v)?new mongoose.Types.ObjectId(v):null;
 app.get('/api/health',(req,res)=>ok(res,{environment:process.env.NODE_ENV||'production',timestamp:new Date().toISOString()},'API is healthy'));
+app.use('/api/settings', settingsRouter);
 app.post('/api/auth/register',async(req,res)=>{try{const {email,password,firstName,lastName,phone}=req.body;if(!email||!password)return fail(res,'Email and password are required');if(password.length<6)return fail(res,'Password must be at least 6 characters');if(await User.exists({email:email.toLowerCase()}))return fail(res,'An account with this email already exists');const u=await User.create({email,passwordHash:await bcrypt.hash(password,12),firstName,lastName,phone});const access_token=tokenFor(u);ok(res,{access_token,refresh_token:access_token,user:publicUser(u)},'Account created')}catch(e){fail(res,e.message,500)}});
 app.post('/api/auth/login',async(req,res)=>{try{const {email,password}=req.body;const u=await User.findOne({email:(email||'').toLowerCase()});if(!u||!(await bcrypt.compare(password||'',u.passwordHash)))return fail(res,'Invalid email or password',401);const access_token=tokenFor(u);ok(res,{access_token,refresh_token:access_token,user:publicUser(u)},'Login successful')}catch(e){fail(res,e.message,500)}});
 app.get('/api/auth/me',auth,async(req,res)=>{const u=await User.findById(req.auth.id);if(!u)return fail(res,'User not found',404);ok(res,publicUser(u))});
