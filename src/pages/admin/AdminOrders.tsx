@@ -14,7 +14,6 @@ export default function AdminOrders(){
  useEffect(()=>{loadOrders();const t=window.setInterval(loadOrders,4000);return()=>window.clearInterval(t)},[]);
  const updateStatus=async(orderId:string,status:OrderStatus)=>{const res=await ordersApi.updateStatus(orderId,status);if(!res.success)notify(res.message||'Could not update status','error');else{setOrders(prev=>prev.map(o=>o.id===orderId?{...o,status}:o));notify(`Order updated to ${status.replace(/_/g,' ')}`,'success')}};
  const filtered=filter==='all'?orders:orders.filter(o=>o.status===filter);
- const filterTabs:[{value:OrderStatus|'all';label:string}] = [];
  const tabs=[{value:'all' as const,label:'All'},...ORDER_STATUSES.map(s=>({value:s.value,label:s.label})),{value:'cancelled' as const,label:'Cancelled'}];
  return <div><div className="mb-6 flex items-center justify-between gap-3"><h1 className="font-display text-2xl font-bold text-bakery-ink">Orders</h1><span className="inline-flex items-center gap-2 rounded-full bg-bakery-sky px-3 py-1.5 text-xs font-semibold text-bakery-primary"><BellRing className="h-3.5 w-3.5"/>Live updates</span></div>
  <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">{tabs.map(t=><button key={t.value} onClick={()=>setFilter(t.value)} className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${filter===t.value?'bg-bakery-primary text-white':'bg-white text-bakery-ink/60 hover:bg-bakery-sky'}`}>{t.label}</button>)}</div>
