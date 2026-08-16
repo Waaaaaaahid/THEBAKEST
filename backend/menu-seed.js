@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const P = 'https://images.pexels.com/photos/';
-const img = (id) => `${P}${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1200`;
+const img = (id) => `${P}${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=3840`;
 const images = {
   cakes:[2067436,3851000,10153294,1055272,1703272,291528,3026808,3026808,1055272,2067436],
   cheesecakes:[38495630,2067436,1055272,3026808,1703272,38495630,2067436,1055272,3026808,38495630],
@@ -47,19 +47,10 @@ const priceFor = (name, category) => { if(category==='Beverages') return 129; if
 export async function seedBakestMenu(Category, Menu) {
   let sort = 0;
   for (const [categoryName, key, names] of categories) {
-    const category = await Category.findOneAndUpdate(
-      { slug:key },
-      { $set:{name:categoryName,slug:key,sort_order:sort++} },
-      { upsert:true,new:true }
-    );
+    const category = await Category.findOneAndUpdate({ slug:key },{$set:{name:categoryName,slug:key,sort_order:sort++}},{upsert:true,new:true});
     for (let i=0;i<names.length;i++) {
-      const name=names[i];
-      const itemSlug=slugify(name);
-      await Menu.findOneAndUpdate(
-        {slug:itemSlug},
-        {$set:{name,slug:itemSlug,category_id:category._id,description:descriptionFor(name),image:img(images[key][i]),price:priceFor(name,categoryName),available:true,featured:i<2,bestseller:i<3,veg:!['Chicken','Chicken Puff','Chicken Pizza Pocket','Baked Chicken Roll'].some(x=>name.includes(x)),sort_order:i}},
-        {upsert:true,new:true}
-      );
+      const name=names[i]; const itemSlug=slugify(name);
+      await Menu.findOneAndUpdate({slug:itemSlug},{$set:{name,slug:itemSlug,category_id:category._id,description:descriptionFor(name),image:img(images[key][i]),price:priceFor(name,categoryName),available:true,featured:i<2,bestseller:i<3,veg:!['Chicken','Chicken Puff','Chicken Pizza Pocket','Baked Chicken Roll'].some(x=>name.includes(x)),sort_order:i}},{upsert:true,new:true});
     }
   }
   console.log(`The Bakest catalog synced: ${categories.length} categories × 10 items = ${categories.length*10} items.`);
