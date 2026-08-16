@@ -1,64 +1,66 @@
 import mongoose from 'mongoose';
 
-const pexels = {
-  cake: 'https://images.pexels.com/photos/2067436/pexels-photo-2067436.jpeg?auto=compress&cs=tinysrgb&w=900',
-  chocolateCake: 'https://images.pexels.com/photos/3851000/pexels-photo-3851000.jpeg?auto=compress&cs=tinysrgb&w=900',
-  croissant: 'https://images.pexels.com/photos/3850330/pexels-photo-3850330.jpeg?auto=compress&cs=tinysrgb&w=900',
-  brownie: 'https://images.pexels.com/photos/13215205/pexels-photo-13215205.jpeg?auto=compress&cs=tinysrgb&w=900',
-  chocolateSlice: 'https://images.pexels.com/photos/10153294/pexels-photo-10153294.jpeg?auto=compress&cs=tinysrgb&w=900',
+const P = 'https://images.pexels.com/photos/';
+const img = (id) => `${P}${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1200`;
+const images = {
+  cakes:[2067436,3851000,10153294,1055272,1703272,291528,3026808,3026808,1055272,2067436],
+  cheesecakes:[38495630,2067436,1055272,3026808,1703272,38495630,2067436,1055272,3026808,38495630],
+  jars:[4110008,2067436,38495630,4110008,2067436,1055272,4110008,38495630,2067436,4110008],
+  croissants:[3850330,13736076,1126359,3850330,13736076,1126359,3850330,13736076,1126359,3850330],
+  brownies:[13215205,9501658,3026808,13215205,9501658,3026808,13215205,9501658,3026808,13215205],
+  cookies:[2309256,291528,2309256,291528,2309256,291528,2309256,291528,2309256,291528],
+  pastries:[10153294,1055272,1703272,10153294,1055272,1703272,10153294,1055272,1703272,10153294],
+  savouries:[3851000,1055272,1703272,3851000,1055272,1703272,3851000,1055272,1703272,3851000],
+  donuts:[1556688,1556688,1556688,1556688,1556688,1556688,1556688,1556688,1556688,1556688],
+  desserts:[1055691,1055691,3026808,1055691,3026808,1055691,3026808,1055691,3026808,1055691],
+  cupcakes:[1775043,1775043,1775043,1775043,1775043,1775043,1775043,1775043,1775043,1775043],
+  muffins:[1058277,1058277,1058277,1058277,1058277,1058277,1058277,1058277,1058277,1058277],
+  breads:[1028714,1028714,1028714,1028714,1028714,1028714,1028714,1028714,1028714,1028714],
+  tarts:[3026808,3026808,2067436,3026808,2067436,3026808,2067436,3026808,2067436,3026808],
+  pies:[1055272,1055272,2067436,1055272,2067436,1055272,2067436,1055272,2067436,1055272],
+  beverages:[1055272,1055272,1055272,1055272,1055272,1055272,1055272,1055272,1055272,1055272]
 };
 
-const catalog = [
-  ['Cakes','Cake Jars','Blueberry Baked Cheesecake Jar','Indulgent baked cheesecake with a bright blueberry finish.',239,'cake'],
-  ['Cakes','Cake Jars','Lotus Biscoff Cheesecake Jar','Creamy baked cheesecake layered with caramelised Lotus Biscoff.',239,'cake'],
-  ['Cakes','Cake Jars','Brownie Cheesecake Jar','Rich cheesecake layered with fudgy brownie pieces.',null,'brownie'],
-  ['Cakes','Cake Jars','Hazelnut Baked Cheesecake Jar','Creamy baked cheesecake with a smooth hazelnut finish.',239,'cake'],
-  ['Cakes','Cakes','Pineapple Punch Cake','Moist pineapple cake layered with creamy frosting.',null,'cake'],
-  ['Cakes','Cakes','Chocolate Mousse Cake','Velvety chocolate mousse layered with moist chocolate cake.',null,'chocolateCake'],
-  ['Cakes','Cakes','Chocolate Chips Cake','Soft cake filled with generous chocolate chips.',null,'chocolateCake'],
-  ['Cakes','Cakes','German Black Forest Cake','Chocolate cake layered with whipped cream and cherries.',null,'chocolateCake'],
-  ['Cakes','Cakes','Caramel Butterscotch Cake','Moist cake with creamy butterscotch filling and drizzle.',null,'cake'],
-  ['Cakes','Cakes','Triple Chocolate Cake','Three layers of dark, milk and white chocolate cake.',null,'chocolateCake'],
-  ['Cakes','Cakes','Chocolate Truffle Cake','Rich chocolate cake finished with a luxurious truffle layer.',null,'chocolateSlice'],
-  ['Cakes','Cakes','Fruit Delight Cake','Light cake layered with cream and fresh seasonal fruits.',null,'cake'],
-  ['Cakes','Cakes','Rasmalai Fusion Cake','Modern cake layered with the rich flavour of rasmalai.',null,'cake'],
-  ['Cakes','Cakes','Red Velvet Cake','Moist red velvet layers with a smooth creamy frosting.',null,'cake'],
-  ['Cakes','Cakes','Coffee Chocolate Cake','A balanced blend of coffee and rich chocolate.',null,'chocolateCake'],
-  ['Cakes','Cakes','Hazelnut Chocolate Cake','Chocolate cake with creamy hazelnut filling.',null,'chocolateCake'],
-  ['Savouries','Savouries','Baked Chicken Roll','Juicy tender chicken wrapped in a soft roll and baked golden.',79,'cake'],
-  ['Pastries','Pastries','Pineapple Delight Pastry','Light pineapple sponge with creamy frosting.',null,'cake'],
-  ['Pastries','Pastries','Black Forest Pastry','Chocolate sponge with whipped cream and cherry flavour.',null,'chocolateSlice'],
-  ['Pastries','Pastries','Chocolate Chips Pastry','Moist chocolate pastry studded with chocolate chips.',null,'chocolateCake'],
-  ['Pastries','Pastries','Chocolate Truffle Pastry','Rich chocolate layers with a smooth truffle filling.',null,'chocolateSlice'],
-  ['Pastries','Pastries','Fruit Delight Pastry','Light sponge with cream and fresh fruit topping.',null,'cake'],
-  ['Pastries','Pastries','Rasmalai Fusion Pastry','Pastry layers inspired by classic rasmalai flavours.',null,'cake'],
-  ['Pastries','Pastries','Rabdi Falooda Pastry','A fusion pastry combining rich rabdi and falooda flavours.',null,'cake'],
-  ['Desserts','Donuts','Chocolate Donut','Soft baked donut coated with rich chocolate.',null,'chocolateCake'],
-  ['Desserts','Croissants','Butter Croissant','Flaky, golden croissant with a classic buttery finish.',null,'croissant'],
-  ['Desserts','Croissants','Nutella Croissant','Flaky croissant filled with smooth chocolate-hazelnut spread.',null,'croissant'],
-  ['Desserts','Croissants','Hazelnut Croissant','Golden croissant with a creamy hazelnut filling.',null,'croissant'],
-  ['Desserts','Croissants','Lotus Biscoff Croissant','Flaky croissant filled with creamy Lotus Biscoff.',null,'croissant'],
-  ['Desserts','Croissants','Blueberry Croissant','Flaky croissant with a sweet blueberry filling.',null,'croissant'],
-  ['Brownies','Brownies','Chocolate Hazelnut Brownie','Fudgy chocolate brownie with a rich hazelnut flavour.',null,'brownie'],
-  ['Brownies','Brownies','Walnut Brownie','Fudgy chocolate brownie packed with crunchy walnuts.',null,'brownie'],
-  ['Brownies','Brownies','Chocolate Fudge Brownie','Deep, intense chocolate flavour in a fudgy brownie.',null,'brownie'],
-  ['Brownies','Brownies','Lotus Biscoff Brownie','Fudgy brownie swirled with creamy Lotus Biscoff.',null,'brownie'],
+const categories = [
+  ['Cakes','cakes',['Classic Vanilla Celebration Cake','Chocolate Truffle Cake','Red Velvet Cake','Black Forest Cake','Pineapple Cream Cake','Butterscotch Crunch Cake','Hazelnut Chocolate Cake','Coffee Mocha Cake','Fruit Fresh Cream Cake','Rasmalai Fusion Cake']],
+  ['Cheesecakes','cheesecakes',['New York Cheesecake','Blueberry Cheesecake','Lotus Biscoff Cheesecake','Strawberry Cheesecake','Mango Cheesecake','Chocolate Cheesecake','Oreo Cheesecake','Caramel Cheesecake','Hazelnut Cheesecake','Classic Baked Cheesecake']],
+  ['Cake Jars','jars',['Blueberry Cheesecake Jar','Lotus Biscoff Cheesecake Jar','Brownie Cheesecake Jar','Hazelnut Cheesecake Jar','Chocolate Truffle Jar','Red Velvet Jar','Mango Cheesecake Jar','Oreo Cream Jar','Strawberry Shortcake Jar','Caramel Crunch Jar']],
+  ['Croissants','croissants',['Butter Croissant','Chocolate Croissant','Nutella Croissant','Almond Croissant','Hazelnut Croissant','Lotus Biscoff Croissant','Blueberry Croissant','Cheese Croissant','Cinnamon Croissant','Pistachio Croissant']],
+  ['Brownies','brownies',['Classic Fudge Brownie','Walnut Brownie','Chocolate Hazelnut Brownie','Lotus Biscoff Brownie','Oreo Brownie','Double Chocolate Brownie','Salted Caramel Brownie','Espresso Brownie','Peanut Butter Brownie','Triple Chocolate Brownie']],
+  ['Cookies','cookies',['Classic Choco Chip Cookie','Double Chocolate Cookie','Oatmeal Raisin Cookie','Butter Cookie','Red Velvet Cookie','Lotus Biscoff Cookie','White Chocolate Macadamia Cookie','Peanut Butter Cookie','Nutella Stuffed Cookie','Dark Chocolate Sea Salt Cookie']],
+  ['Pastries','pastries',['Pineapple Delight Pastry','Black Forest Pastry','Chocolate Chips Pastry','Chocolate Truffle Pastry','Fruit Delight Pastry','Rasmalai Fusion Pastry','Rabdi Falooda Pastry','Red Velvet Pastry','Butterscotch Pastry','Coffee Mocha Pastry']],
+  ['Savouries','savouries',['Baked Chicken Roll','Chicken Puff','Veg Puff','Paneer Puff','Cheese Garlic Roll','Veg Pizza Pocket','Chicken Pizza Pocket','Spinach Cheese Puff','Corn Cheese Roll','Masala Veg Roll']],
+  ['Donuts','donuts',['Classic Glazed Donut','Chocolate Glazed Donut','Sprinkle Donut','Nutella Donut','Lotus Biscoff Donut','Vanilla Cream Donut','Strawberry Donut','Double Chocolate Donut','Cinnamon Sugar Donut','Caramel Donut']],
+  ['Desserts','desserts',['Chocolate Mousse','Classic Tiramisu','Caramel Pudding','Chocolate Pudding','Fruit Cream Cup','Mango Mousse','Strawberry Mousse','Oreo Dessert Cup','Brownie Sundae Cup','Vanilla Panna Cotta']],
+  ['Cupcakes','cupcakes',['Vanilla Cupcake','Chocolate Cupcake','Red Velvet Cupcake','Black Forest Cupcake','Strawberry Cupcake','Lotus Biscoff Cupcake','Oreo Cupcake','Caramel Cupcake','Coffee Cupcake','Hazelnut Cupcake']],
+  ['Muffins','muffins',['Blueberry Muffin','Chocolate Chip Muffin','Double Chocolate Muffin','Banana Walnut Muffin','Vanilla Muffin','Strawberry Muffin','Coffee Crumble Muffin','Apple Cinnamon Muffin','Lemon Muffin','Carrot Walnut Muffin']],
+  ['Breads','breads',['Classic Milk Bread','Garlic Bread Loaf','Cheese Bread','Multigrain Bread','Whole Wheat Bread','Cinnamon Raisin Bread','Brioche Loaf','Herb Bread','Olive Focaccia','Stuffed Cheese Bread']],
+  ['Tarts','tarts',['Fresh Fruit Tart','Chocolate Ganache Tart','Lemon Tart','Strawberry Tart','Blueberry Tart','Mango Tart','Caramel Nut Tart','Apple Cinnamon Tart','Chocolate Hazelnut Tart','Mixed Berry Tart']],
+  ['Pies','pies',['Apple Pie','Chocolate Cream Pie','Blueberry Pie','Strawberry Pie','Banana Cream Pie','Mango Pie','Caramel Pecan Pie','Mixed Berry Pie','Coconut Cream Pie','Classic Fruit Pie']],
+  ['Beverages','beverages',['Classic Cold Coffee','Chocolate Frappe','Vanilla Frappe','Hazelnut Frappe','Strawberry Milkshake','Mango Milkshake','Oreo Shake','Hot Chocolate','Cappuccino','Iced Mocha']]
 ];
 
+const slugify = (s) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const descriptionFor = (name) => `Freshly prepared ${name.toLowerCase()} with premium ingredients, balanced sweetness and a freshly baked The Bakest finish.`;
+const priceFor = (name, category) => { if(category==='Beverages') return 129; if(category==='Savouries') return 99; if(category==='Cakes'||category==='Cheesecakes'||category==='Cake Jars') return 239; if(category==='Pies'||category==='Tarts') return 179; if(category==='Brownies'||category==='Cookies') return 89; return 119; };
+
 export async function seedBakestMenu(Category, Menu) {
-  for (const [categoryName, subCategory, name, description, price, imageKey] of catalog) {
-    const slug = categoryName.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  let sort = 0;
+  for (const [categoryName, key, names] of categories) {
     const category = await Category.findOneAndUpdate(
-      { slug },
-      { $setOnInsert: { name: categoryName, slug, sort_order: ['Cakes','Savouries','Pastries','Desserts','Brownies'].indexOf(categoryName) } },
-      { upsert: true, new: true }
+      { slug:key },
+      { $set:{name:categoryName,slug:key,sort_order:sort++} },
+      { upsert:true,new:true }
     );
-    const itemSlug = name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-    await Menu.findOneAndUpdate(
-      { slug: itemSlug },
-      { $set: { name, category_id: category._id, description, image: pexels[imageKey], ...(price !== null ? { price } : {}), available: price !== null, veg: name === 'Baked Chicken Roll' ? false : true } },
-      { upsert: true, new: true }
-    );
+    for (let i=0;i<names.length;i++) {
+      const name=names[i];
+      const itemSlug=slugify(name);
+      await Menu.findOneAndUpdate(
+        {slug:itemSlug},
+        {$set:{name,slug:itemSlug,category_id:category._id,description:descriptionFor(name),image:img(images[key][i]),price:priceFor(name,categoryName),available:true,featured:i<2,bestseller:i<3,veg:!['Chicken','Chicken Puff','Chicken Pizza Pocket','Baked Chicken Roll'].some(x=>name.includes(x)),sort_order:i}},
+        {upsert:true,new:true}
+      );
+    }
   }
-  console.log(`The Bakest menu catalog synced: ${catalog.length} items. Unverified prices remain unavailable until exact menu pricing is confirmed.`);
+  console.log(`The Bakest catalog synced: ${categories.length} categories × 10 items = ${categories.length*10} items.`);
 }
