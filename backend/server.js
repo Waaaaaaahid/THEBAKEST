@@ -66,7 +66,7 @@ async function seedAdmin(){
   const password=process.env.ADMIN_PASSWORD||'';
   if(!email && !password){console.log('Admin seed skipped: ADMIN_EMAIL and ADMIN_PASSWORD are not set.');return;}
   if(!email || !password) throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must both be set for admin seeding');
-  if(password.length<12) throw new Error('ADMIN_PASSWORD must be at least 12 characters');
+  if(password.length<8) throw new Error('ADMIN_PASSWORD must be at least 8 characters');
   const existing=await User.findOne({email});
   const passwordHash=await bcrypt.hash(password,12);
   if(existing){
