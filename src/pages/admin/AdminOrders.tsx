@@ -1,0 +1,168 @@
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Package, ChevronDown, Phone, MapPin, CreditCard } from 'lucide-react';
+import { ordersApi } from '@/lib/api';
+import type { Order, OrderStatus } from '@/lib/types';
+import { ORDER_STATUSES } from '@/lib/types';
+import { formatINR, formatDate } from '@/lib/format';
+import { useToast } from '@/components/Toast';
+
+const statusOptions: OrderStatus[] = ['placed', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+
+export default function AdminOrders() {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<OrderStatus | 'all'>('all');
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const { notify } = useToast();
+
+  const loadOrders = async () => {
+    const res = await ordersApi.list();
+    if (res.success) setOrders((res.data as Order[]) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadOrders(); }, []);
+
+  const updateStatus = async (orderId: string, status: OrderStatus) => {
+    const res = await ordersApi.updateStatus(orderId, status);
+    if (!res.success) {
+      notify('Could not update status', 'error');
+    } else {
+      setOrders((prev) => prev.map((o) => o.id === orderId ? { ...o, status } : o));
+      notify(`Order updated to ${status.replace(/_/g, ' ')}`, 'success');
+    }
+  };
+
+  const filtered = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
+
+  const filterTabs: { value: OrderStatus | 'all'; label: string }[] = [
+    { value: 'all', label: 'All' },
+    ...ORDER_STATUSES.map((s) => ({ value: s.value, label: s.label })),
+    { value: 'cancelled', label: 'Cancelled' },
+  ];
+
+  return (
+    <div>
+      <h1 className="mb-6 font-display text-2xl font-bold text-bakery-ink">Orders</h1>
+
+      {/* Filter tabs */}
+      <div className="mb-6 flex gap-2 overflow-x-auto no-scrollbar">
+        {filterTabs.map((t) => (
+          <button
+            key={t.value}
+            onClick={() => setFilter(t.value)}
+            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+              filter === t.value ? 'bg-bakery-primary text-white' : 'bg-white text-bakery-ink/60 hover:bg-bakery-sky'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2 border-bakery-primary/20 border-t-bakery-primary" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="card p-12 text-center">
+          <Package className="mx-auto h-10 w-10 text-bakery-primary/30" />
+          <p className="mt-3 text-sm text-bakery-ink/50">No orders in this category.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((o) => (
+            <motion.div
+              key={o.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="card overflow-hidden"
+            >
+              <button
+                onClick={() => setExpanded(expanded === o.id ? null : o.id)}
+                className="flex w-full items-center gap-4 p-4 text-left"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bakery-sky text-bakery-primary">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-display text-sm font-semibold text-bakery-ink">{o.order_number}</p>
+                  <p className="text-xs text-bakery-ink/50">{o.customer_name} · {formatDate(o.created_at)}</p>
+                </div>
+                <div className="hidden sm:block text-right">
+                  <p className="font-display text-sm font-bold text-bakery-primary-dark">{formatINR(o.total)}</p>
+                  <p className="text-xs text-bakery-ink/50">{o.items.length} item(s) · {o.payment_method.toUpperCase()}</p>
+                </div>
+                <span className={`badge px-2.5 py-1 text-xs ${
+                  o.status === 'delivered' ? 'bg-success/10 text-success' :
+                  o.status === 'cancelled' ? 'bg-error/10 text-error' : 'bg-bakery-sky text-bakery-primary'
+                }`}>{o.status.replace(/_/g, ' ')}</span>
+                <ChevronDown className={`h-4 w-4 text-bakery-ink/30 transition-transform ${expanded === o.id ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {expanded === o.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden border-t border-bakery-primary/10"
+                  >
+                    <div className="grid gap-4 p-4 sm:grid-cols-2">
+                      {/* Items */}
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-bakery-ink/40">Items</h4>
+                        <div className="space-y-2">
+                          {o.items.map((item, i) => (
+                            <div key={`${item.id}-${i}`} className="flex items-center gap-2 text-sm">
+                              <img src={item.image} alt={item.name} className="h-8 w-8 rounded-lg object-cover" />
+                              <span className="flex-1 truncate text-bakery-ink/70">{item.name} {item.variant_label ? `(${item.variant_label})` : ''} ×{item.quantity}</span>
+                              <span className="font-medium text-bakery-ink">{formatINR(item.price * item.quantity)}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="mt-3 space-y-1 border-t border-bakery-primary/10 pt-2 text-sm">
+                          <div className="flex justify-between text-bakery-ink/60"><span>Subtotal</span><span>{formatINR(o.subtotal)}</span></div>
+                          <div className="flex justify-between text-bakery-ink/60"><span>Delivery</span><span>{formatINR(o.delivery_charge)}</span></div>
+                          <div className="flex justify-between font-semibold"><span>Total</span><span className="text-bakery-primary-dark">{formatINR(o.total)}</span></div>
+                        </div>
+                      </div>
+
+                      {/* Customer + status */}
+                      <div>
+                        <h4 className="mb-2 text-xs font-semibold uppercase tracking-wider text-bakery-ink/40">Customer</h4>
+                        <div className="space-y-1.5 text-sm text-bakery-ink/70">
+                          <p>{o.customer_name}</p>
+                          <p className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-bakery-primary" /> {o.customer_phone}</p>
+                          <p className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 text-bakery-primary mt-0.5" /> {o.address}, {o.city} - {o.pincode}</p>
+                          <p className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-bakery-primary" /> {o.payment_method === 'cod' ? 'Cash on Delivery' : 'Online'}</p>
+                          {o.instructions && <p className="text-xs italic text-bakery-ink/50">Note: {o.instructions}</p>}
+                        </div>
+
+                        <h4 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wider text-bakery-ink/40">Update Status</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {statusOptions.map((s) => (
+                            <button
+                              key={s}
+                              onClick={() => updateStatus(o.id, s)}
+                              className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                                o.status === s
+                                  ? 'bg-bakery-primary text-white'
+                                  : 'bg-bakery-sky/60 text-bakery-ink/60 hover:bg-bakery-sky'
+                              }`}
+                            >
+                              {s.replace(/_/g, ' ')}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
