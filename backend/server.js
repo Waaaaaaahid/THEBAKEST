@@ -61,4 +61,23 @@ app.get('/api/admin/customers',auth,admin,async(req,res)=>{const users=await Use
 
 app.use((req,res)=>fail(res,'Route not found',404));
 
-mongoose.connect(process.env.MONGODB_URI).then(()=>app.listen(PORT,()=>console.log(`THE BAKEST API running on ${PORT}`))).catch(err=>{console.error('MongoDB connection failed:',err.message);process.exit(1)});
+async function seedAdmin(){
+  const email=(process.env.ADMIN_EMAIL||'').trim().toLowerCase();
+  const password=process.env.ADMIN_PASSWORD||'';
+  if(!email && !password){console.log('Admin seed skipped: ADMIN_EMAIL and ADMIN_PASSWORD are not set.');return;}
+  if(!email || !password) throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD must both be set for admin seeding');
+  if(password.length<12) throw new Error('ADMIN_PASSWORD must be at least 12 characters');
+  const existing=await User.findOne({email});
+  const passwordHash=await bcrypt.hash(password,12);
+  if(existing){
+    if(existing.role!=='admin') existing.role='admin';
+    existing.passwordHash=passwordHash;
+    await existing.save();
+    console.log(`Admin account ready: ${email}`);
+    return;
+  }
+  await User.create({email,passwordHash,firstName:'Admin',role:'admin'});
+  console.log(`Admin account created: ${email}`);
+}
+
+mongoose.connect(process.env.MONGODB_URI).then(async()=>{await seedAdmin();app.listen(PORT,()=>console.log(`THE BAKEST API running on ${PORT}`));}).catch(err=>{console.error('MongoDB connection failed:',err.message);process.exit(1)});
