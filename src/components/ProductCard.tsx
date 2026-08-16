@@ -10,131 +10,20 @@ export function ProductCard({ item }: { item: MenuItem }) {
   const { addItem } = useCart();
   const { notify } = useToast();
   const variants = item.price_variants?.length ? item.price_variants : [];
-  const [selectedVariant, setSelectedVariant] = useState<PriceVariant | null>(
-    variants.length ? variants[0] : null
-  );
+  const [selectedVariant, setSelectedVariant] = useState<PriceVariant | null>(variants.length ? variants[0] : null);
   const [added, setAdded] = useState(false);
-
-  const displayPrice = selectedVariant ? selectedVariant.price : item.price;
+  const rawPrice = selectedVariant ? selectedVariant.price : item.price;
+  const displayPrice = Number.isFinite(Number(rawPrice)) ? Number(rawPrice) : 0;
 
   const handleAdd = () => {
-    if (!item.available) return;
-    addItem({
-      id: item.id,
-      name: item.name,
-      image: item.image,
-      price: displayPrice,
-      variant_label: selectedVariant?.label ?? null,
-      quantity: 1,
-    });
-    setAdded(true);
-    notify(`${item.name} added to cart`, 'success');
-    setTimeout(() => setAdded(false), 1400);
+    if (!item.available || displayPrice <= 0) return;
+    addItem({ id:item.id, name:item.name, image:item.image, price:displayPrice, variant_label:selectedVariant?.label??null, quantity:1 });
+    setAdded(true); notify(`${item.name} added to cart`, 'success'); setTimeout(()=>setAdded(false),1400);
   };
 
-  return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-      className="group card overflow-hidden flex flex-col"
-    >
-      <div className="relative aspect-[4/3] overflow-hidden bg-bakery-cream-dark">
-        <img
-          src={item.image}
-          alt={item.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              'https://images.pexels.com/photos/2068249/pexels-photo-2068249.jpeg?auto=compress&cs=tinysrgb&h=650&w=940';
-          }}
-        />
-        <div className="absolute left-3 top-3 flex flex-col gap-1.5">
-          {item.bestseller && (
-            <span className="badge bg-accent-gold/95 text-white shadow-sm">
-              <Star className="h-3 w-3 fill-white" /> Bestseller
-            </span>
-          )}
-          {item.featured && !item.bestseller && (
-            <span className="badge bg-bakery-primary/90 text-white shadow-sm">Featured</span>
-          )}
-          <span className={`badge ${item.veg ? 'bg-success/90 text-white' : 'bg-error/90 text-white'}`}>
-            {item.veg ? <Leaf className="h-3 w-3" /> : <Drumstick className="h-3 w-3" />}
-            {item.veg ? 'Veg' : 'Non-Veg'}
-          </span>
-        </div>
-        {!item.available && (
-          <div className="absolute inset-0 flex items-center justify-center bg-bakery-ink/60 backdrop-blur-sm">
-            <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-bakery-ink">
-              Currently Unavailable
-            </span>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="font-display text-base font-semibold leading-snug text-bakery-ink">{item.name}</h3>
-        <p className="mt-1 line-clamp-2 text-xs text-bakery-ink/55">{item.description}</p>
-
-        {variants.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {variants.map((v) => (
-              <button
-                key={v.label}
-                onClick={() => setSelectedVariant(v)}
-                className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
-                  selectedVariant?.label === v.label
-                    ? 'border-bakery-primary bg-bakery-primary text-white'
-                    : 'border-bakery-primary/20 bg-white text-bakery-ink/70 hover:border-bakery-primary/40'
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="mt-auto flex items-center justify-between pt-4">
-          <div>
-            <p className="text-xs text-bakery-ink/40">
-              {selectedVariant ? selectedVariant.label : 'Price'}
-            </p>
-            <p className="font-display text-lg font-bold text-bakery-primary-dark">
-              {formatINR(displayPrice)}
-            </p>
-          </div>
-          <button
-            onClick={handleAdd}
-            disabled={!item.available}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-40 ${
-              added
-                ? 'bg-success text-white'
-                : 'bg-bakery-primary text-white hover:bg-bakery-primary-dark shadow-soft'
-            }`}
-          >
-            {added ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-            {added ? 'Added' : 'Add'}
-          </button>
-        </div>
-      </div>
-    </motion.div>
-  );
+  return <motion.div whileHover={{y:-4}} transition={{type:'spring',stiffness:300,damping:24}} className="group card overflow-hidden flex flex-col">
+    <div className="relative aspect-[4/3] overflow-hidden bg-bakery-cream-dark"><img src={item.image} alt={item.name} loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" onError={e=>{(e.target as HTMLImageElement).src='https://images.pexels.com/photos/2068249/pexels-photo-2068249.jpeg?auto=compress&cs=tinysrgb&h=650&w=940'}}/><div className="absolute left-3 top-3 flex flex-col gap-1.5">{item.bestseller&&<span className="badge bg-accent-gold/95 text-white shadow-sm"><Star className="h-3 w-3 fill-white"/>Bestseller</span>}{item.featured&&!item.bestseller&&<span className="badge bg-bakery-primary/90 text-white shadow-sm">Featured</span>}<span className={`badge ${item.veg?'bg-success/90 text-white':'bg-error/90 text-white'}`}>{item.veg?<Leaf className="h-3 w-3"/>:<Drumstick className="h-3 w-3"/>}{item.veg?'Veg':'Non-Veg'}</span></div>{!item.available&&<div className="absolute inset-0 flex items-center justify-center bg-bakery-ink/60 backdrop-blur-sm"><span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-bakery-ink">Currently Unavailable</span></div>}</div>
+    <div className="flex flex-1 flex-col p-4"><h3 className="font-display text-base font-semibold leading-snug text-bakery-ink">{item.name}</h3><p className="mt-1 line-clamp-2 text-xs text-bakery-ink/55">{item.description}</p>{variants.length>0&&<div className="mt-3 flex flex-wrap gap-1.5">{variants.map(v=><button key={v.label} onClick={()=>setSelectedVariant(v)} className={`rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${selectedVariant?.label===v.label?'border-bakery-primary bg-bakery-primary text-white':'border-bakery-primary/20 bg-white text-bakery-ink/70 hover:border-bakery-primary/40'}`}>{v.label}</button>)}</div>}<div className="mt-auto flex items-center justify-between pt-4"><div><p className="text-xs text-bakery-ink/40">{selectedVariant?selectedVariant.label:'Price'}</p><p className="font-display text-lg font-bold text-bakery-primary-dark">{formatINR(displayPrice)}</p></div><button onClick={handleAdd} disabled={!item.available||displayPrice<=0} className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-40 ${added?'bg-success text-white':'bg-bakery-primary text-white hover:bg-bakery-primary-dark shadow-soft'}`}>{added?<Check className="h-4 w-4"/>:<Plus className="h-4 w-4"/>}{added?'Added':'Add'}</button></div></div>
+  </motion.div>;
 }
-
-export function ProductCardSkeleton() {
-  return (
-    <div className="card overflow-hidden">
-      <div className="skeleton h-44 w-full" />
-      <div className="p-4 space-y-3">
-        <div className="skeleton h-4 w-3/4 rounded" />
-        <div className="skeleton h-3 w-full rounded" />
-        <div className="flex justify-between pt-2">
-          <div className="skeleton h-6 w-16 rounded" />
-          <div className="skeleton h-9 w-24 rounded-full" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
+export function ProductCardSkeleton(){return <div className="card overflow-hidden"><div className="skeleton h-44 w-full"/><div className="p-4 space-y-3"><div className="skeleton h-4 w-3/4 rounded"/><div className="skeleton h-3 w-full rounded"/><div className="flex justify-between pt-2"><div className="skeleton h-6 w-16 rounded"/><div className="skeleton h-9 w-24 rounded-full"/></div></div></div>}
