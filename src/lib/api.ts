@@ -1,4 +1,4 @@
-const API_BASE = (import.meta.env.VITE_API_URL as string || 'http://localhost:5000/api').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL as string || 'https://the-bakest-api-tp4g.onrender.com/api').replace(/\/$/, '');
 
 const TOKEN_KEY = 'bakest_auth_token';
 const REFRESH_KEY = 'bakest_auth_refresh';
