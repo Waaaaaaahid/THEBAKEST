@@ -4,6 +4,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { seedBakestMenu } from './menu-seed.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
@@ -80,4 +81,4 @@ async function seedAdmin(){
   console.log(`Admin account created: ${email}`);
 }
 
-mongoose.connect(process.env.MONGODB_URI).then(async()=>{await seedAdmin();app.listen(PORT,()=>console.log(`THE BAKEST API running on ${PORT}`));}).catch(err=>{console.error('MongoDB connection failed:',err.message);process.exit(1)});
+mongoose.connect(process.env.MONGODB_URI).then(async()=>{await seedAdmin();await seedBakestMenu(Category,Menu);app.listen(PORT,()=>console.log(`THE BAKEST API running on ${PORT}`));}).catch(err=>{console.error('MongoDB connection failed:',err.message);process.exit(1)});
