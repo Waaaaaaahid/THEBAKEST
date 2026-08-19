@@ -19,17 +19,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const syncProfile = async () => {
+    if (!authApi.getToken()) return;
+    const res = await authApi.me();
+    if (res.success && res.data) {
+      const next = res.data as AuthUser;
+      setUser(next);
+      const refresh = localStorage.getItem('bakest_auth_refresh');
+      if (refresh) authApi.setAuth(authApi.getToken()!, refresh, next);
+    } else if (res.message && /authentication|expired|invalid/i.test(res.message)) {
+      authApi.clearAuth();
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       const stored = authApi.getStoredUser();
-      if (stored && authApi.getToken()) {
-        const res = await authApi.me();
-        if (res.success && res.data) setUser(res.data as AuthUser);
-        else { authApi.clearAuth(); setUser(null); }
-      } else setUser(null);
+      if (stored && authApi.getToken()) await syncProfile();
+      else setUser(null);
       setLoading(false);
     })();
   }, []);
+
+  // Keep role/permissions in sync across devices/tabs. This means a customer
+  // promoted to Manager receives Manager access without needing to refresh.
+  useEffect(() => {
+    if (!user || !authApi.getToken()) return;
+    const timer = window.setInterval(syncProfile, 5000);
+    return () => window.clearInterval(timer);
+  }, [user?.id, user?.role]);
 
   const signIn = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
@@ -53,14 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => { await authApi.logout(); setUser(null); };
 
-  const refreshProfile = async () => {
-    const res = await authApi.me();
-    if (res.success && res.data) {
-      setUser(res.data as AuthUser);
-      const current = authApi.getStoredUser();
-      if (current) authApi.setAuth(authApi.getToken()!, localStorage.getItem('bakest_auth_refresh')!, res.data as AuthUser);
-    }
-  };
+  const refreshProfile = async () => { await syncProfile(); };
 
   const isAdmin = user?.role === 'admin' || user?.role === 'manager';
   const isManager = user?.role === 'manager';
